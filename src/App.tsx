@@ -2409,9 +2409,10 @@ export default function App() {
                 ) : (
                   history
                     .filter(record => 
-                      record && 
-                      (record.client || '').toLowerCase().includes((historySearch || '').toLowerCase()) || 
-                      (record.num || '').toLowerCase().includes((historySearch || '').toLowerCase())
+                      record && (
+                        (record.client || '').toLowerCase().includes((historySearch || '').toLowerCase()) || 
+                        (record.num || '').toLowerCase().includes((historySearch || '').toLowerCase())
+                      )
                     )
                     .map((record) => {
                       const deadline = record.dueDate;
