@@ -178,7 +178,7 @@ export default function App() {
   ];
 
   const handleCountryChange = (val: string) => {
-    const countryInfo = countryDataList.find(c => c.name.toLowerCase() === val.toLowerCase());
+    const countryInfo = countryDataList.find(c => c.name.toLowerCase() === (val || '').toLowerCase());
     if (countryInfo) {
       setCompany({ ...company, pais: countryInfo.name, cidade: countryInfo.capital });
       setCurrency(countryInfo.currency);
@@ -488,6 +488,8 @@ export default function App() {
   const total = valueAfterDiscount + taxAmount;
   
   const formatCurrency = (val: number) => {
+    if (val === undefined || val === null || isNaN(val)) return `0,00 ${currency}`;
+    
     // Basic locales mapping
     const locales: Record<string, string> = {
       'Kz': 'pt-AO',
@@ -536,18 +538,18 @@ export default function App() {
     } 
     if (supabaseUser) {
       deleteInvoiceFromSupabase(id);
-      setHistory(prev => prev.filter(h => h.id !== id));
+      setHistory(prev => prev.filter(h => h && h.id !== id));
     }
     if (!user && !supabaseUser) {
-      setHistory(history.filter(h => h.id !== id));
+      setHistory(history.filter(h => h && h.id !== id));
     }
   };
 
   const updateInvoiceStatus = (id: string, newStatus: 'Pago' | 'Pendente' | 'Vencido' | 'Anulado') => {
-    const updatedHistory = history.map(h => h.id === id ? { ...h, status: newStatus } : h);
+    const updatedHistory = history.map(h => (h && h.id === id) ? { ...h, status: newStatus } : h);
     setHistory(updatedHistory);
     
-    const record = updatedHistory.find(h => h.id === id);
+    const record = updatedHistory.find(h => h && h.id === id);
     if (!record) return;
 
     // Disparar notificação (Push/Local) sobre mudança de status
@@ -571,7 +573,7 @@ export default function App() {
     if (items.length === 0) return alert('Adicione itens primeiro');
     const headers = ['Descricao', 'Quantidade', 'Preco Unitario', 'Total Item'];
     const rows = items.map(i => [
-      `"${i.desc.replace(/"/g, '""')}"`,
+      `"${(i.desc || '').replace(/"/g, '""')}"`,
       i.qtd,
       i.preco,
       i.total
@@ -596,7 +598,7 @@ export default function App() {
       h.date,
       h.num,
       `"${h.type}"`,
-      `"${h.client.replace(/"/g, '""')}"`,
+      `"${(h.client || '').replace(/"/g, '""')}"`,
       h.total
     ]);
     const csvContent = "\uFEFF" + headers.join(";") + "\n" + rows.map(r => r.join(";")).join("\n");
@@ -654,7 +656,7 @@ export default function App() {
   const loadFromHistory = (record: HistoryRecord) => {
     setDocTipo(record.type);
     setDocNum(record.num);
-    setDocData(record.date);
+    setDocData(record.date || new Date().toISOString().split('T')[0]);
     setCliNome(record.client);
     setItems(record.items);
     if (record.taxRate !== undefined) setTaxRate(record.taxRate);
@@ -668,7 +670,7 @@ export default function App() {
 
   const getQRDataUrl = (size = 150) => {
     // Generate a unique ID for verification (fallback to docNum + date)
-    const uniqueId = `${docNum.replace(/[\/\s]/g, '-')}-${Date.now()}`;
+    const uniqueId = `${(docNum || '').replace(/[\/\s]/g, '-')}-${Date.now()}`;
     const verificationPortal = `https://90faturas.com/verify/${uniqueId}`;
     
     const fields = [];
@@ -709,7 +711,7 @@ export default function App() {
     text += `=================================\n`;
     
     // Add verification link
-    const uniqueId = `${docNum.replace(/[\/\s]/g, '-')}-${Date.now()}`;
+    const uniqueId = `${(docNum || '').replace(/[\/\s]/g, '-')}-${Date.now()}`;
     const verificationPortal = `https://90faturas.com/verify/${uniqueId}`;
     text += `Verifique em: ${verificationPortal}\n`;
 
@@ -764,7 +766,7 @@ export default function App() {
     };
 
     // Only add if not duplicate (by ID)
-    if (!history.find(h => h.id === newRecord.id)) {
+    if (!history.find(h => h && h.id === newRecord.id)) {
       if (user) {
         saveInvoiceToFirebase(newRecord);
       } 
@@ -784,7 +786,7 @@ export default function App() {
 
     const doc = new jsPDF(formato === 'a4' ? { orientation: 'p', unit: 'mm', format: 'a4' } : { unit: 'mm', format: [58, 85 + items.length * 8 + (customFields.length * 4)] });
     const qrImg = getQRDataUrl(100);
-    const dataFomated = docData.split('-').reverse().join('/');
+    const dataFomated = (docData || '').split('-').reverse().join('/');
 
     if (formato === 'a4') {
       // Watermark
@@ -963,7 +965,7 @@ export default function App() {
       }
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
-      doc.text(company.nome.substring(0, 30).toUpperCase(), cx, y, { align: 'center' });
+      doc.text((company.nome || '').substring(0, 30).toUpperCase(), cx, y, { align: 'center' });
       y += 3.5;
       doc.setFontSize(6);
       doc.setFont('helvetica', 'normal');
@@ -999,7 +1001,7 @@ export default function App() {
       doc.text('-----------------------------------', cx, y, { align: 'center' });
       y += 3.5;
 
-      doc.text(`Cli: ${cliNome.substring(0, 25)}`, 2, y);
+      doc.text(`Cli: ${(cliNome || '').substring(0, 25)}`, 2, y);
       y += 4;
 
       customFields.forEach(field => {
@@ -1011,7 +1013,7 @@ export default function App() {
       if (customFields.length > 0) y += 0.5;
 
       items.forEach(i => {
-        doc.text(`${i.desc.substring(0, 35)}`, 2, y);
+        doc.text(`${(i.desc || '').substring(0, 35)}`, 2, y);
         y += 2.5;
         doc.text(`${i.qtd} x ${formatCurrency(i.preco)} = ${formatCurrency(i.total)}`, 56, y, { align: 'right' });
         y += 3.5;
@@ -1109,8 +1111,9 @@ export default function App() {
   }, []);
 
   const monthlySalesData = useMemo(() => {
-    if (history.length === 0) return [];
+    if (!history || !Array.isArray(history) || history.length === 0) return [];
     const grouped = history.reduce((acc, curr) => {
+      if (!curr || !curr.date) return acc;
       const monthStr = curr.date.substring(0, 7); 
       if (!acc[monthStr]) acc[monthStr] = 0;
       acc[monthStr] += curr.total;
@@ -1118,11 +1121,16 @@ export default function App() {
     }, {} as Record<string, number>);
 
     return Object.keys(grouped).sort().map(key => {
-      const [year, month] = key.split('-');
-      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-      const monthName = date.toLocaleString('pt-BR', { month: 'short' });
+      let monthName = key;
+      if (key.includes('-')) {
+        const [year, month] = key.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        if (!isNaN(date.getTime())) {
+          monthName = date.toLocaleString('pt-BR', { month: 'short' }).toUpperCase() + '/' + year;
+        }
+      }
       return {
-        name: `${monthName.toUpperCase()}/${year}`,
+        name: monthName,
         Total: grouped[key]
       };
     });
@@ -1713,7 +1721,7 @@ export default function App() {
                   onChange={(e) => handleCountryChange(e.target.value)}
                 />
                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm">
-                  {countryDataList.find(c => c.name.toLowerCase() === company.pais.toLowerCase())?.flag || '🏳️'}
+                  {countryDataList.find(c => c.name.toLowerCase() === (company.pais || '').toLowerCase())?.flag || '🏳️'}
                 </span>
               </div>
               <datalist id="country-list">
@@ -2401,8 +2409,9 @@ export default function App() {
                 ) : (
                   history
                     .filter(record => 
-                      record.client.toLowerCase().includes(historySearch.toLowerCase()) || 
-                      record.num.toLowerCase().includes(historySearch.toLowerCase())
+                      record && 
+                      (record.client || '').toLowerCase().includes((historySearch || '').toLowerCase()) || 
+                      (record.num || '').toLowerCase().includes((historySearch || '').toLowerCase())
                     )
                     .map((record) => {
                       const deadline = record.dueDate;
@@ -2565,8 +2574,8 @@ export default function App() {
                 ) : (
                   customers
                     .filter(c => 
-                      c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
-                      (c.nif && c.nif.includes(customerSearch))
+                      c && c.name && (c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
+                      (c.nif && c.nif.includes(customerSearch)))
                     )
                     .map((customer) => (
                     <div 

@@ -7,7 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: '/90-faturas-v1.2/',
+    base: './',
     build: {
       outDir: 'docs',
     },
