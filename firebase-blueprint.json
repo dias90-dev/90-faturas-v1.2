@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document containing account metadata.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "description": "User's email address." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the user document was created." }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Represents a single invoice or receipt.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the invoice." },
+        "num": { "type": "string", "description": "Invoice number/reference." },
+        "date": { "type": "string", "description": "Date of the invoice." },
+        "type": { "type": "string", "description": "Type of document (Receipt, Invoice, etc.)." },
+        "client": { "type": "string", "description": "Client name." },
+        "total": { "type": "number", "description": "Total amount." },
+        "userId": { "type": "string", "description": "UID of the owner." },
+        "items": { "type": "array", "description": "List of invoice items." },
+        "customFields": { "type": "array", "description": "Optional list of custom fields." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp of last update." }
+      },
+      "required": ["id", "num", "date", "type", "client", "total", "userId", "items", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile storage."
+    },
+    "/users/{userId}/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "User-specific invoices subcollection."
+    }
+  }
+}

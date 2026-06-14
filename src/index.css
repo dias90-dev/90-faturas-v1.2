@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  --color-bg-main: #0b0e14;
+  --color-bg-card: #151923;
+  --color-border-custom: #262c3d;
+  --color-accent-blue: #00d2ff;
+  --color-accent-gold: #ffcc00;
+  --color-accent-red: #ff3366;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border-custom);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-blue);
+}
+
+body {
+  background-color: var(--color-bg-main);
+  color: #f8fafc;
+  font-family: var(--font-sans);
+}
+
+.markdown-body {
+  @apply text-slate-300;
+}
+
+@layer components {
+  .btn-primary {
+    @apply w-full py-3.5 px-4 bg-accent-blue text-black font-bold rounded-lg transition-all active:scale-[0.98] shadow-lg shadow-accent-blue/20 hover:opacity-90 flex justify-center items-center gap-2;
+  }
+  .btn-gold {
+    @apply w-full py-3.5 px-4 bg-linear-to-br from-[#d4af37] to-accent-gold text-black font-bold rounded-lg transition-all active:scale-[0.98] shadow-lg shadow-accent-gold/20 hover:opacity-90 flex justify-center items-center gap-2;
+  }
+  .btn-outline {
+    @apply w-full py-3.5 px-4 bg-transparent border border-border-custom text-slate-400 font-bold rounded-lg transition-all active:scale-[0.98] hover:bg-white/5 flex justify-center items-center gap-2;
+  }
+  .card {
+    @apply bg-bg-card border border-border-custom rounded-xl p-5 mb-5 shadow-2xl;
+  }
+  .label-custom {
+    @apply block text-[11px] text-slate-400 mb-1.5 uppercase font-medium;
+  }
+  .input-custom {
+    @apply w-full p-3 bg-black/30 border border-border-custom text-slate-100 rounded-lg text-sm outline-none focus:border-accent-blue focus:bg-accent-blue/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:border-dashed;
+  }
+}
+
+@media print {
+  @page {
+    margin: 0;
+    size: var(--thermal-width, 80mm) auto;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #invoiceRef, #invoiceRef * {
+    visibility: visible;
+  }
+
+  #invoiceRef {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: var(--thermal-width, 78mm) !important;
+    text-align: center !important;
+    max-width: 100%;
+    margin: 0 !important;
+    padding-top: var(--thermal-pt, 10px) !important;
+    padding-bottom: var(--thermal-pb, 10px) !important;
+    padding-left: var(--thermal-px, 10px) !important;
+    padding-right: var(--thermal-px, 10px) !important;
+    box-shadow: none !important;
+    border: none !important;
+    min-height: auto !important;
+    background-color: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+  
+  #invoiceRef * {
+    text-align: center !important;
+  }
+
+  .no-print, .no-print * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+

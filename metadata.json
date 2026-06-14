@@ -1,0 +1,8 @@
+{
+  "name": "90 Faturas - Premium Edition",
+  "description": "Sistema profissional de faturação offline com suporte para PDF A4 e talões térmicos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

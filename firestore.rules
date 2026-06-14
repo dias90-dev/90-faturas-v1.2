@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Is Signed In
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Is Owner
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // Validation for User
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'createdAt']) &&
+             data.keys().size() == 2 &&
+             data.email is string && data.email.size() <= 254 &&
+             data.createdAt == request.time;
+    }
+
+    // Validation for Invoice
+    function isValidInvoice(data) {
+      return data.keys().hasAll(['id', 'date', 'num', 'type', 'client', 'total', 'userId', 'createdAt', 'updatedAt', 'items']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.date is string && data.date.size() <= 100 &&
+             data.num is string && data.num.size() <= 100 &&
+             data.type is string && data.type.size() <= 100 &&
+             data.client is string && data.client.size() <= 100 &&
+             data.total is number &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.items is list && data.items.size() <= 1000 &&
+             (data.keys().hasAll(['customFields']) ? data.customFields is list && data.customFields.size() <= 50 : true) &&
+             data.createdAt is timestamp && data.createdAt == request.time &&
+             data.updatedAt is timestamp && data.updatedAt == request.time;
+    }
+    
+    // Validation for Invoice Update
+    function isValidInvoiceUpdate(data) {
+      return data.keys().hasAll(['id', 'date', 'num', 'type', 'client', 'total', 'userId', 'createdAt', 'updatedAt', 'items']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.date is string && data.date.size() <= 100 &&
+             data.num is string && data.num.size() <= 100 &&
+             data.type is string && data.type.size() <= 100 &&
+             data.client is string && data.client.size() <= 100 &&
+             data.total is number &&
+             data.userId is string && data.userId == existing().userId &&
+             data.items is list && data.items.size() <= 1000 &&
+             (data.keys().hasAll(['customFields']) ? data.customFields is list && data.customFields.size() <= 50 : true) &&
+             data.createdAt == existing().createdAt &&
+             data.updatedAt == request.time;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email']) &&
+                    request.resource.data.email is string && request.resource.data.email.size() <= 254;
+      allow delete: if isOwner(userId);
+      
+      // Invoices Subcollection
+      match /invoices/{invoiceId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidInvoice(incoming());
+        allow update: if isOwner(userId) && isValidInvoiceUpdate(incoming()) && incoming().diff(existing()).affectedKeys().hasOnly(['num', 'date', 'type', 'client', 'total', 'items', 'customFields', 'updatedAt']);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}
