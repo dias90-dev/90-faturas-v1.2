@@ -17,8 +17,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'Nova Notificação';
   const options = {
     body: data.body || 'Você tem uma nova notificação sobre sua fatura.',
-    icon: '/icon.png',
-    badge: '/icon.png',
+    icon: 'icon.png',
+    badge: 'icon.png',
     data: data.data || { url: '/' },
   };
 

@@ -30,13 +30,13 @@ export const showNotification = async (title: string, body: string, url: string 
         title,
         options: {
           body,
-          icon: '/icon.png',
-          badge: '/icon.png',
+          icon: 'icon.png',
+          badge: 'icon.png',
           data: { url }
         }
       });
     } else {
-      new Notification(title, { body, icon: '/icon.png' });
+      new Notification(title, { body, icon: 'icon.png' });
     }
   }
 };

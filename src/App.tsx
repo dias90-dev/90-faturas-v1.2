@@ -250,15 +250,16 @@ export default function App() {
     const savedSoba = localStorage.getItem(SOBA_KEY) === 'true';
     setIsSoba(savedSoba);
 
+    const safeParse = (val: string | null, defaultVal: any) => {
+      if (!val) return defaultVal;
+      try { return JSON.parse(val); } catch (e) { return defaultVal; }
+    };
+
     const savedDB = localStorage.getItem(DB_KEY);
-    if (savedDB) {
-      setCompany(JSON.parse(savedDB));
-    }
+    if (savedDB) setCompany(safeParse(savedDB, company));
 
     const savedItems = localStorage.getItem(ITEMS_KEY);
-    if (savedItems) {
-      setItems(JSON.parse(savedItems));
-    }
+    if (savedItems) setItems(safeParse(savedItems, items));
 
     const savedCliNome = localStorage.getItem('f90_cliNome');
     const savedCliNif = localStorage.getItem('f90_cliNif');
@@ -268,16 +269,16 @@ export default function App() {
     if (savedCliEmail) setCliEmail(savedCliEmail);
 
     const savedHistory = localStorage.getItem(HISTORY_KEY);
-    if (!user && !supabaseUser && savedHistory) setHistory(JSON.parse(savedHistory));
+    if (!user && !supabaseUser && savedHistory) setHistory(safeParse(savedHistory, []));
 
     const savedQrConfig = localStorage.getItem(QR_CONFIG_KEY);
-    if (savedQrConfig) setQrConfig(JSON.parse(savedQrConfig));
+    if (savedQrConfig) setQrConfig(safeParse(savedQrConfig, qrConfig));
 
     const savedThermalConfig = localStorage.getItem(THERMAL_CONFIG_KEY);
-    if (savedThermalConfig) setThermalConfig(JSON.parse(savedThermalConfig));
+    if (savedThermalConfig) setThermalConfig(safeParse(savedThermalConfig, thermalConfig));
 
     const savedCustomFields = localStorage.getItem('f90_customFields');
-    if (savedCustomFields) setCustomFields(JSON.parse(savedCustomFields));
+    if (savedCustomFields) setCustomFields(safeParse(savedCustomFields, []));
 
     const savedTaxRate = localStorage.getItem('f90_taxRate');
     if (savedTaxRate) setTaxRate(Number(savedTaxRate));
@@ -1141,7 +1142,7 @@ export default function App() {
                <div className="mb-8">
                   <div className="w-24 h-24 bg-accent-blue/10 rounded-3xl flex items-center justify-center mx-auto mb-6 overflow-hidden">
                      <motion.img 
-                        src="/icon.png" 
+                        src="./icon.png" 
                         alt="90 Faturas Logo" 
                         className="w-full h-full object-contain"
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -1298,7 +1299,7 @@ export default function App() {
       </div>
       <header className="text-center mb-8 pt-4 flex flex-col items-center">
         <motion.img 
-          src="/icon.png" 
+          src="./icon.png" 
           alt="90 Faturas Logo" 
           className="w-20 h-20 object-contain mb-4"
           initial={{ opacity: 0, y: -20 }}
