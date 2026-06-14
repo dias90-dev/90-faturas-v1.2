@@ -196,6 +196,8 @@ export default function App() {
   const [prodDesc, setProdDesc] = useState('');
   const [prodQtd, setProdQtd] = useState<number | ''>('');
   const [prodPreco, setProdPreco] = useState<number | ''>('');
+  const [prodCost, setProdCost] = useState<number | ''>('');
+  const [amountPaid, setAmountPaid] = useState<number | ''>('');
 
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -459,7 +461,8 @@ export default function App() {
         desc: prodDesc,
         qtd: Number(prodQtd),
         preco: Number(prodPreco),
-        total: Number(prodQtd) * Number(prodPreco)
+        total: Number(prodQtd) * Number(prodPreco),
+        ...(prodCost !== '' && { custo: Number(prodCost) })
       };
 
       if (supabaseUser) {
@@ -470,6 +473,7 @@ export default function App() {
       setProdDesc('');
       setProdQtd('');
       setProdPreco('');
+      setProdCost('');
     } else {
       alert('Preencha os campos do produto corretamente.');
     }
@@ -2088,7 +2092,7 @@ export default function App() {
                 onChange={(e) => setProdDesc(e.target.value)}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="label-custom">QTD</label>
                 <input 
@@ -2107,6 +2111,16 @@ export default function App() {
                   placeholder="0,00"
                   value={prodPreco}
                   onChange={(e) => setProdPreco(e.target.value === '' ? '' : Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <label className="label-custom">Custo Op.</label>
+                <input 
+                  type="number"
+                  className="input-custom"
+                  placeholder="0,00"
+                  value={prodCost}
+                  onChange={(e) => setProdCost(e.target.value === '' ? '' : Number(e.target.value))}
                 />
               </div>
             </div>
@@ -2137,9 +2151,20 @@ export default function App() {
                   exit={{ opacity: 0, x: 10 }}
                   className="flex items-center justify-between p-3 bg-black/20 border border-border-custom rounded-lg text-sm"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-accent-blue font-bold tabular-nums">{item.qtd}x</span>
-                    <span className="text-slate-300 truncate max-w-[150px] md:max-w-[250px]">{item.desc}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3">
+                      <span className="text-accent-blue font-bold tabular-nums">{item.qtd}x</span>
+                      <span className="text-slate-300 truncate max-w-[150px] md:max-w-[250px]">{item.desc}</span>
+                    </div>
+                    {item.custo !== undefined && item.custo > 0 && (
+                      <div className="text-[10px] text-slate-500 flex items-center gap-2 mt-1">
+                        <span>Custo: {formatCurrency(item.custo)}</span>
+                        <span>•</span>
+                        <span className="text-accent-gold">Margem: {((item.preco - item.custo) / item.custo * 100).toFixed(1)}%</span>
+                        <span>•</span>
+                        <span className="text-green-400">Lucro: {formatCurrency((item.preco - item.custo) * item.qtd)}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="font-bold text-slate-100 tabular-nums">{formatCurrency(item.total)}</span>
@@ -2169,8 +2194,30 @@ export default function App() {
                 <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">IVA ({taxRate}%): {formatCurrency(taxAmount)}</p>
               </div>
             )}
-            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Valor Total a Pagar</p>
-            <p className="text-3xl font-black text-accent-gold tracking-tight">{formatCurrency(total)}</p>
+            
+            <div className="flex flex-col items-end gap-3 mt-4">
+              <div className="text-right">
+                <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest leading-tight">Valor Total a Pagar</p>
+                <p className="text-3xl font-black text-accent-gold tracking-tight leading-none mb-2">{formatCurrency(total)}</p>
+              </div>
+
+              <div className="flex flex-col items-end gap-2 border-t border-border-custom pt-4 w-full md:w-auto">
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Valor Entregue pelo Cliente ({currency})</label>
+                <input 
+                  type="number"
+                  className="input-custom text-right max-w-[200px]"
+                  placeholder="Opcional"
+                  value={amountPaid}
+                  onChange={(e) => setAmountPaid(e.target.value === '' ? '' : Number(e.target.value))}
+                />
+                {(amountPaid !== '' && Number(amountPaid) >= total && total > 0) && (
+                  <div className="text-right mt-1 p-2 bg-green-500/10 border border-green-500/20 rounded-lg w-full flex justify-between items-center max-w-[250px]">
+                    <span className="text-[10px] text-green-400/80 uppercase font-bold tracking-widest mr-3">Troco:</span>
+                    <span className="text-lg font-black text-green-400 tabular-nums">{formatCurrency(Number(amountPaid) - total)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-4 items-center">

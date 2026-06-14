@@ -3,6 +3,7 @@ export interface InvoiceItem {
   qtd: number;
   preco: number;
   total: number;
+  custo?: number;
 }
 
 export interface CustomField {
