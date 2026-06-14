@@ -45,6 +45,7 @@ import { HistoryRecord } from '../types';
 
 export const checkOverdueInvoices = (history: HistoryRecord[]) => {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!history || !Array.isArray(history)) return;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);

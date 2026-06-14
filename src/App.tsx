@@ -252,7 +252,11 @@ export default function App() {
 
     const safeParse = (val: string | null, defaultVal: any) => {
       if (!val) return defaultVal;
-      try { return JSON.parse(val); } catch (e) { return defaultVal; }
+      try { 
+        const parsed = JSON.parse(val); 
+        if (Array.isArray(defaultVal) && !Array.isArray(parsed)) return defaultVal;
+        return parsed;
+      } catch (e) { return defaultVal; }
     };
 
     const savedDB = localStorage.getItem(DB_KEY);
