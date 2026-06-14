@@ -53,7 +53,13 @@ export const checkOverdueInvoices = (history: HistoryRecord[]) => {
   const notifiedKey = 'f90_notified_overdue';
   let notified: string[] = [];
   try {
-    notified = JSON.parse(localStorage.getItem(notifiedKey) || '[]');
+    notified = [];
+    try {
+      notified = JSON.parse(localStorage.getItem(notifiedKey) || '[]');
+      if (!Array.isArray(notified)) notified = [];
+    } catch (e) {
+      notified = [];
+    }
   } catch (e) { }
 
   const newOverdue = history.filter(record => {
